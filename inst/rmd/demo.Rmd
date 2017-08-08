@@ -1,0 +1,78 @@
+---
+title: "Sequential Monte Carlo for Response Adaptive Randomized Clinical Trials"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(SMC.RAR)
+library(ggplot2)
+library(dplyr)
+set.seed(4231)
+```
+
+This is a demo for package SMC.RAR which uses sequential Monte Carlo (SMC) for performing Bayesian updates within a Response Adaptive Randomized (RAR) clinical trial which in turn facilitates simulation of RAR trials in a Bayesian framework with non-conjugate models.
+
+In this demo we consider two example scenarios where we simulate a RAR trial where patients are enrolled one at a time and the results (posterior distribution of effect sizes) are updated after every single outcome (assumed to be instantaneous) is available. After an initail sample of patients the allocation probabilities of patients to different arms are adjusted according to the performance of teh corresponding intervention. The trial is stopped if one of the trial arms is superior to the others with probability 0.95 given the data observed so far. Also a trial arm is dropped if its probability of being superior falls below 0.01.
+
+## Example 1
+
+Binary outcomes: Consider a four arm RAR design where each patient is given one of four competing treatments. The allocation is decided by generating $x_n$ from 
+
+$$x_n \sim \text{Multinomial}(1, \boldsymbol{\rho} = (\rho_1, \ldots, \rho_L)),$$
+where 
+$$\rho_1 = \ldots = \rho_L = \frac{1}{L} \hskip 144pt \text{for} \hskip 5pt n \leq n_0;$$ 
+and
+$$\rho_l = \text{P}(\theta_l = \max(\theta_1, \ldots, \theta_L)\mid \mathbf{y}_n), \hskip 5pt l = 1, \ldots, L \hskip 20pt \text{for} \hskip 5pt n > n_0.$$
+
+No adaptation is made for the allocation probabilities $\boldsymbol{\rho}$ for the first $n_0=40$ patients. The instantaneous response is either a success, $y = 1$, or a failure, $y = 0$ and is generated from the following Bernoulli likelihood,
+$$y_n \sim \text{Bernoulli}(\frac{1}{1+\exp(x_n^T\boldsymbol{\theta})}).$$
+We fix the effect sizes for the data generating process at $\boldsymbol{\theta} = (0, 0.5, -0.4, 1.2)$. A normal prior with mean 0 and variance 100 is used for $\theta_l$, $l = 1, 2, 3, 4$. 
+
+```{r RAR simulation}
+rar1 = RAR_sim(nt = 4, theta0 = c(0, 0.5, -0.4, 1.2), response.type = 'binary')
+```
+
+## Plot the results
+
+Now we can look at the simulated trial data:
+
+```{r data plot}
+data_plot(rar1)
+```
+
+If patient $n$ receives treatment $l$ a dot appears in row $l$ for patient $n$. If the dot is green the response is positive and if it is red the response is negative. The allocations are balanced for the four arms up to 40 patients. We can look at the evolution of the probability of superiority for each arm corresponding to this data:
+
+```{r psup plot}
+psup_plot(rar1)
+```
+
+Finally, we can see how the posterior distribution of the effect sizes corresponding to different arms looks like at 5 snapshots through the course of the trial:
+
+```{r post plot}
+post_plot(rar1)
+```
+
+
+## Example 2
+Count outcomes: Consider a five arm RAR design. No adaptation is made for the allocation probabilities $\boldsymbol{\rho}$ for the first $n_0=50$ patients. The instantaneous response is an integer (counts), i.e., $y = 0,1,2, \ldots$:
+$$y_n \sim \text{Poisson}(\exp(x_n^T\boldsymbol{\theta})).$$
+
+The effect sizes for the data generating process are assumed to be  $\boldsymbol{\theta} = (0, 1.5, 1.2, 1, 0)$. 
+
+```{r RAR simulation2}
+rar2 = RAR_sim(nt = 5, theta0 = c(0, 1.5, 1.2, 1, 0), response.type = 'binary')
+```
+
+The simulated trial data is plotted below: each row corresponds to a treatment arm. If patient $n$ receives treatment $l$ a dot appears in row $l$ for patient $n$. The bright blue dots represent higher counts. The allocations are balanced for the five arms up to 50 patients.
+```{r data plot2}
+data_plot(rar2)
+```
+
+```{r psup plot2}
+psup_plot(rar2)
+```
+
+```{r  post plot2}
+post_plot(rar2)
+```

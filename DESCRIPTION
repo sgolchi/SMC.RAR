@@ -1,0 +1,15 @@
+Package: SMC.RAR
+Type: Package
+Title: Simulate RAR trial with SMC
+Version: 0.1.0
+Author: Shirin Golchi
+Maintainer: The package maintainer <sgolchi@sfu.ca>
+Description: This package includes functions for simulating a Response Adaptive Randomized (RAR) trial in a Bayesian framework where the posterior updates are done using a particle filter or Sequantial Monte Carlo (SMC) sampler.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Imports: abind,
+    ggplot2,
+    dplyr,
+    reshape2
+RoxygenNote: 6.0.1
